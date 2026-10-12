@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111a15">
+  <meta name="description" content="贪吃蛇：随机出现苹果、梨或桃子，每吃一个水果得1分，挑战前20名。">
+  <title>贪吃蛇</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="game-card" aria-label="贪吃蛇游戏">
+    <header class="game-toolbar">
+      <div class="game-title"><h1>贪吃蛇</h1><span class="score-label">得分 <strong id="score">0</strong></span></div>
+      <div class="toolbar-actions">
+        <button id="open-leaderboard" type="button">排行榜</button>
+        <button id="start-toggle" type="button">开始</button>
+        <button id="restart" type="button">重开</button>
+      </div>
+    </header>
+    <div class="board-wrap">
+      <canvas id="board" tabindex="0" aria-label="贪吃蛇棋盘，使用方向键或WASD移动"></canvas>
+      <div id="board-overlay" class="board-overlay">
+        <h2 id="overlay-title">准备开始</h2>
+        <button id="board-action" class="primary" type="button">开始游戏</button>
+      </div>
+    </div>
+    <footer class="game-footer"><span id="status" role="status">方向键 / WASD 移动 · 空格暂停</span><span>每个水果 +1</span></footer>
+    <nav class="direction-pad" aria-label="移动方向">
+      <button data-direction="up" type="button" aria-label="向上">↑</button>
+      <button data-direction="left" type="button" aria-label="向左">←</button>
+      <button data-direction="down" type="button" aria-label="向下">↓</button>
+      <button data-direction="right" type="button" aria-label="向右">→</button>
+    </nav>
+  </main>
+  <dialog id="game-over" aria-labelledby="over-title">
+    <h2 id="over-title">游戏结束</h2>
+    <p class="muted">本局得分</p><strong id="final-score">0</strong>
+    <form id="score-form">
+      <label for="nickname">昵称</label>
+      <input id="nickname" name="nickname" type="text" required maxlength="40" placeholder="1～20个字符" autocomplete="nickname" aria-describedby="submit-status">
+      <button id="submit-score" class="primary" type="submit">提交本局成绩</button>
+    </form>
+    <p id="submit-status" class="muted" role="status">只保存进入前20名的成绩。</p>
+    <div class="dialog-actions"><button id="play-again" class="primary" type="button">再玩一局</button><button id="view-board" type="button">返回棋盘</button></div>
+  </dialog>
+  <dialog id="leaderboard-dialog" aria-labelledby="leaderboard-title">
+    <div class="leaderboard-heading"><h2 id="leaderboard-title">前 20 名</h2><button id="close-leaderboard" type="button" aria-label="关闭排行榜">关闭</button></div>
+    <div class="leaderboard-meta"><p class="muted">同分先提交者优先</p><button id="refresh-leaderboard" type="button">刷新 ↻</button></div>
+    <p id="leaderboard-status" class="muted" role="status">正在读取排行榜…</p>
+    <ol id="leaderboard-list" class="leaderboard-list" aria-label="排行榜"></ol>
+  </dialog>
+  <script src="game-rules.js"></script>
+  <script src="skin.js"></script>
+  <script src="snake-renderer.js"></script>
+  <script src="leaderboard.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
+
