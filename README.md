@@ -1,2 +1,6 @@
-# naiwatanchishe.github.io
-奶娃贪吃蛇
+# naiwatanchishe
+只是个奶娃贪吃蛇
+用了codex闲的没事干做了一个
+目前成绩上传似乎有些问题
+贴图显示也不是很好
+看后续有没有心情改吧...
