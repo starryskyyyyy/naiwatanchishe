@@ -4,14 +4,23 @@ globalThis.SnakeRenderer = class SnakeRenderer {
     this.canvas=canvas;this.context=canvas.getContext('2d');this.images={};
     const {columns,rows,cellSize}=GameRules.settings;
     this.width=columns*cellSize;this.height=rows*cellSize;
-    const ratio=Math.min(globalThis.devicePixelRatio||1,2);
-    canvas.width=this.width*ratio;canvas.height=this.height*ratio;
-    this.ratio=ratio;
+    this.resize();
+    this.resizeObserver=new ResizeObserver(()=>this.resize());
+    this.resizeObserver.observe(canvas);
     this.layouts=layouts;
     for(const [part,url] of Object.entries(skin)) {
       if(!url)continue;
       const image=new Image();image.src=url;this.images[part]=image;
     }
+  }
+  resize() {
+    // CSS决定棋盘显示大小，画布像素随显示尺寸与屏幕像素密度变化。
+    const displayWidth=this.canvas.getBoundingClientRect().width || this.width;
+    const pixels=Math.max(1,Math.round(displayWidth*Math.min(globalThis.devicePixelRatio||1,2)));
+    if(this.canvas.width!==pixels || this.canvas.height!==pixels) {
+      this.canvas.width=pixels;this.canvas.height=pixels;
+    }
+    this.ratio=pixels/this.width;
   }
   drawSprite(part, image, size) {
     const layout=this.layouts[part];
