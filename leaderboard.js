@@ -7,8 +7,18 @@ globalThis.LeaderboardUI = (() => {
   const list = document.querySelector('#leaderboard-list');
   const boardStatus = document.querySelector('#leaderboard-status');
   const refreshButton = document.querySelector('#refresh-leaderboard');
-  const connected = location.protocol === 'http:' || location.protocol === 'https:';
-  const localHint = '请先运行 npm start，再打开 http://localhost:3000 使用排行榜。';
+  const onPages = location.hostname.endsWith('.github.io');
+  const baseUrl = String(globalThis.SnakeConfig?.apiBaseUrl || '').trim().replace(/\/+$/,'');
+  let validBase = !baseUrl;
+  if(baseUrl)try {
+    const url=new URL(baseUrl);
+    validBase=!url.username && !url.password && !url.search && !url.hash &&
+      (url.protocol==='https:' || (url.protocol==='http:' && ['localhost','127.0.0.1','[::1]'].includes(url.hostname)));
+  } catch { /* 配置错误时不发出请求 */ }
+  const connected = ['http:','https:'].includes(location.protocol) && validBase && (!onPages || !!baseUrl);
+  const localHint = !validBase ? '排行榜连接配置有误，请联系站点作者。' : onPages ?
+    '排行榜服务尚未连接，暂时无法提交成绩；游戏和本局计分仍可正常使用。' :
+    '请先运行 npm start，再打开 http://localhost:3000 使用排行榜。';
   let currentRound;
   let readVersion = 0;
   try { nickname.value = localStorage.getItem('snake-nickname') || ''; } catch { /* 本机记忆不可用时仍可填写 */ }
@@ -17,7 +27,7 @@ globalThis.LeaderboardUI = (() => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(),10000);
     try {
-      const response = await fetch(url,{...options,signal:controller.signal});
+      const response = await fetch(baseUrl+url,{...options,signal:controller.signal});
       let body;
       try { body = await response.json(); } catch { throw new Error('服务器响应异常，请稍后重试'); }
       if (!response.ok) throw new Error(body.error || '请求失败，请稍后重试');
@@ -56,7 +66,7 @@ globalThis.LeaderboardUI = (() => {
   function startRound() {
     // 新一局使用新UUID；失败重试始终使用当前局原来的UUID。
     currentRound = {submissionId: globalThis.crypto?.randomUUID?.() || null, score:null, pending:false, complete:false};
-    form.hidden = false; nickname.disabled = false; nickname.setCustomValidity('');
+    form.hidden = !connected; nickname.disabled = false; nickname.setCustomValidity('');
     submitButton.disabled = true; submitButton.textContent = '提交本局成绩';
     submitStatus.textContent = connected ? '只保存进入前20名的成绩。' : localHint;
   }

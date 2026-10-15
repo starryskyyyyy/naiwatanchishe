@@ -7,8 +7,24 @@ const assert=require('node:assert/strict');
 const {createApplication}=require('./server.js');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 (async()=>{
-  const app=createApplication({dbPath:join(mkdtempSync(join(tmpdir(),'snake-qa-db-')),'snake.sqlite')});
+  let backendUrl;
+  const frontend=require('node:http').createServer(async(req,res)=>{
+    try {
+      if(req.url.startsWith('/api/')){res.writeHead(404);return res.end();}
+      if(req.url.startsWith('/config.js')) {
+        res.writeHead(200,{'Content-Type':'text/javascript'});
+        return res.end('globalThis.SnakeConfig='+JSON.stringify({apiBaseUrl:backendUrl}));
+      }
+      const response=await fetch(backendUrl+req.url);
+      res.writeHead(response.status,{'Content-Type':response.headers.get('Content-Type')});
+      res.end(Buffer.from(await response.arrayBuffer()));
+    } catch {res.writeHead(500);res.end();}
+  });
+  await new Promise(resolve=>frontend.listen(0,'127.0.0.1',resolve));
+  const frontendUrl='http://127.0.0.1:'+frontend.address().port;
+  const app=createApplication({dbPath:join(mkdtempSync(join(tmpdir(),'snake-qa-db-')),'snake.sqlite'),allowedOrigins:[frontendUrl]});
   await new Promise(resolve=>app.server.listen(0,'127.0.0.1',resolve));
+  backendUrl='http://127.0.0.1:'+app.server.address().port;
   app.board.submit({nickname:'<b>蛇</b>',score:9,submissionId:randomUUID()});
   const profile=mkdtempSync(join(tmpdir(),'snake-qa-edge-'));
   const proc=spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',['--headless=new','--disable-gpu','--no-first-run','--remote-debugging-port=9231','--user-data-dir='+profile,'about:blank'],{windowsHide:true,stdio:'ignore'});
@@ -159,11 +175,17 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     await wait('__qaGame.snake[0].y<10','手机方向按钮');await click('start-toggle');
     assert.equal(await evaluate('__qaGame.status'),'paused');
     await click('restart');assert.equal(await evaluate('__qaGame.score'),0);assert.equal(await evaluate('__qaGame.status'),'ready');
+    await send('Page.navigate',{url:frontendUrl});
+    await wait('!!window.__qaGame && document.querySelectorAll("#leaderboard-list li").length===20','独立前端跨域读取后端榜单');
+    await forceEnd(130);await submit('跨站提交玩家');await submitted();
+    assert.equal(app.board.list()[0].nickname,'跨站提交玩家');
+    assert.equal(app.board.list()[0].score,130);assert.equal(app.board.list().length,20);
     assert.deepEqual(errors,[]);
-    console.log('PASS: snake eat +1, growth, keyboard, pause, leaderboard modal, 1-point save, duplicate/retry/stale protection, top20 rejection, mobile controls, no runtime exceptions');
+    console.log('PASS: enlarged responsive board, fruit scoring, keyboard/mobile, pause, top20, duplicate/retry/stale protection, separate-origin API reads and submissions, no runtime exceptions');
   } finally {
     if(socket)socket.close();proc.kill();
     await new Promise(resolve=>{app.server.close(resolve);app.server.closeAllConnections();});app.board.close();
+    await new Promise(resolve=>{frontend.close(resolve);frontend.closeAllConnections();});
   }
 })().catch(error=>{console.error(error);process.exitCode=1;});
 

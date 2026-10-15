@@ -1,0 +1,7 @@
+.git
+data
+publish
+node_modules
+*.zip
+preview-*.png
+.env*

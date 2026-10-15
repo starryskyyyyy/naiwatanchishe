@@ -97,3 +97,27 @@ test('频率限制返回429与Retry-After，不影响读取排行榜', async t =
   assert.equal((await fetch(app.base+'/api/leaderboard')).status,200);
   assert.equal(app.board.list().length,2);
 });
+
+test('GitHub Pages跨域预检、读取和提交可用，未允许的来源不能写入',async t=>{
+  const origin='https://starryskyyyyy.github.io';
+  const app=await setup(t,{allowedOrigins:[origin]});
+  const preflight=await fetch(app.base+'/api/scores',{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type'}});
+  assert.equal(preflight.status,204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'),origin);
+  assert.match(preflight.headers.get('access-control-allow-methods'),/POST/);
+  const saved=await fetch(app.base+'/api/scores',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({nickname:'网页玩家',score:1,submissionId:randomUUID()})});
+  assert.equal(saved.status,201);assert.equal((await saved.json()).qualified,true);
+  const board=await fetch(app.base+'/api/leaderboard',{headers:{Origin:origin}});
+  assert.equal(board.headers.get('access-control-allow-origin'),origin);
+  assert.equal((await board.json()).entries[0].nickname,'网页玩家');
+  const denied=await fetch(app.base+'/api/scores',{method:'POST',headers:{Origin:'https://example.org','Content-Type':'application/json'},body:JSON.stringify({nickname:'不应保存',score:2,submissionId:randomUUID()})});
+  assert.equal(denied.status,403);assert.equal(app.board.list().length,1);
+});
+
+test('服务健康检查与前端后端地址配置可读取',async t=>{
+  const app=await setup(t);
+  const health=await fetch(app.base+'/api/health');
+  assert.equal(health.status,200);assert.equal((await health.json()).ok,true);
+  const config=await fetch(app.base+'/config.js');
+  assert.equal(config.status,200);assert.match(await config.text(),/SnakeConfig/);
+});

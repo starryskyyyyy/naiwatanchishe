@@ -1,6 +1,10 @@
 # naiwatanchishe
 只是个奶娃贪吃蛇
 用了codex闲的没事干做了一个
-目前成绩上传似乎有些问题
-贴图显示也不是很好
-看后续有没有心情改吧...
+棋盘现在随窗口放大，苹果、梨和桃子随机出现，每个水果加1分。
+
+GitHub Pages 只运行游戏前端。全站排行榜需要独立的 Node.js 24+ 后端和持久磁盘；在 `config.js` 填入后端 HTTPS 地址后启用提交。未连接后端时会明确提示，不会假装保存成绩。
+
+本地运行：`npm start`；测试：`npm test` 和 `npm run test:browser`。
+
+完整上线步骤见 [排行榜后端部署说明](docs/leaderboard-deployment.md)。

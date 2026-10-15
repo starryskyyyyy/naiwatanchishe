@@ -3,56 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f4e9">
-  <meta name="description" content="一颗接一颗，合成你的水果宇宙。24级水果合成小游戏。">
-  <title>果然合得来 · 水果合成</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#111a15">
+  <meta name="description" content="贪吃蛇：随机出现苹果、梨或桃子，每吃一个水果得1分，挑战前20名。">
+  <title>贪吃蛇</title>
+  <link rel="stylesheet" href="styles.css?v=20261015">
 </head>
 <body>
-  <main class="layout">
-    <header class="intro">
-      <span class="eyebrow">FRUIT CLUB / 001</span>
-      <h1>果然</span>合得来。</span></h1>
-      <p>从一颗小樱桃开始，<br>装下一整个水果宇宙。</p>
-      <div class="intro-fruit" aria-hidden="true">🍊<span>✦</span></div>
-      <div class="rule-note"><span class="note-number">01 — HOW TO PLAY</span>
-        <h2>相同的碰一碰，就长大。</h2>
-        <p>移动瞄准，点击投放。相同等级的水果相遇，会合成更高一级。</p>
-        <p>水果持续越过警戒线 2 秒，本局结束。高级水果更稀有，慢慢来。</p>
+  <main class="game-card" aria-label="贪吃蛇游戏">
+    <header class="game-toolbar">
+      <div class="game-title"><h1>贪吃蛇</h1><span class="score-label">得分 <strong id="score">0</strong></span></div>
+      <div class="toolbar-actions">
+        <button id="open-leaderboard" type="button">排行榜</button>
+        <button id="start-toggle" type="button">开始</button>
+        <button id="restart" type="button">重开</button>
       </div>
-      <p class="small-note">24 级合成链 · 无需通关，挑战更高分</p>
     </header>
-    <section class="game-card" aria-label="水果合成游戏">
-      <div class="game-toolbar">
-        <div><span class="label">本局分数</span><strong id="score">0</strong></div>
-        <div class="next-fruit"><span id="next-icon" class="fruit-badge" aria-hidden="true">🍒</span>
-          <div><span class="label">下一颗 · <span id="next-level">Lv.1</span></span><b id="next-name">樱桃</b></div>
-        </div>
+    <div class="board-wrap">
+      <canvas id="board" tabindex="0" aria-label="贪吃蛇棋盘，使用方向键或WASD移动"></canvas>
+      <div id="board-overlay" class="board-overlay">
+        <h2 id="overlay-title">准备开始</h2>
+        <button id="board-action" class="primary" type="button">开始游戏</button>
       </div>
-      <div id="board" aria-label="游戏区域：移动瞄准，点击或触摸投放水果"></div>
-      <div class="game-footer"><p id="status" role="status">正在加载游戏…</p><button id="restart" type="button" disabled>重新开始 ↻</button></div>
-      <p id="load-error" class="load-error" hidden>物理引擎加载失败，请检查网络后刷新页面。</p>
-    </section>
-    <aside class="collection">
-      <div class="section-title"><span class="eyebrow">THE FRUIT FAMILY</span><span>01—24</span></div>
-      <h2>越合，越有惊喜。</h2>
-      <p class="muted">点亮本局遇见的水果等级。</p>
-      <ol id="fruit-list" class="fruit-list" aria-label="水果等级图鉴"></ol>
-      <div class="progress-note"><span>本局最高等级</span><strong id="highest-level">— / 24</strong></div>
-      <div class="coming-next"><span class="label">接下来一起制作</span><p>全站前 20 名排行榜</p><span class="muted">后端完成后开放成绩提交</span></div>
-    </aside>
-    <footer class="page-footer">一颗水果，一点进步。<span>MADE FOR A LITTLE BREAK.</span></footer>
+    </div>
+    <footer class="game-footer"><span id="status" role="status">方向键 / WASD 移动 · 空格暂停</span><span>每个水果 +1</span></footer>
+    <nav class="direction-pad" aria-label="移动方向">
+      <button data-direction="up" type="button" aria-label="向上">↑</button>
+      <button data-direction="left" type="button" aria-label="向左">←</button>
+      <button data-direction="down" type="button" aria-label="向下">↓</button>
+      <button data-direction="right" type="button" aria-label="向右">→</button>
+    </nav>
   </main>
   <dialog id="game-over" aria-labelledby="over-title">
-    <div class="result-icon" aria-hidden="true">🍉</div><span class="eyebrow">NICE PLAY</span>
-    <h2 id="over-title">这一筐，收获满满。</h2>
-    <p>本局得分</p><strong id="final-score">0</strong>
-    <p id="final-level"></p><p class="muted">成绩提交将在后端排行榜完成后开放。</p>
-    <button id="play-again" type="button">再合一筐 →</button>
-    <button id="view-board" type="button" class="secondary">看看最后的水果筐</button>
+    <h2 id="over-title">游戏结束</h2>
+    <p class="muted">本局得分</p><strong id="final-score">0</strong>
+    <form id="score-form">
+      <label for="nickname">昵称</label>
+      <input id="nickname" name="nickname" type="text" required maxlength="40" placeholder="1～20个字符" autocomplete="nickname" aria-describedby="submit-status">
+      <button id="submit-score" class="primary" type="submit">提交本局成绩</button>
+    </form>
+    <p id="submit-status" class="muted" role="status">只保存进入前20名的成绩。</p>
+    <div class="dialog-actions"><button id="play-again" class="primary" type="button">再玩一局</button><button id="view-board" type="button">返回棋盘</button></div>
   </dialog>
-  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+  <dialog id="leaderboard-dialog" aria-labelledby="leaderboard-title">
+    <div class="leaderboard-heading"><h2 id="leaderboard-title">前 20 名</h2><button id="close-leaderboard" type="button" aria-label="关闭排行榜">关闭</button></div>
+    <div class="leaderboard-meta"><p class="muted">同分先提交者优先</p><button id="refresh-leaderboard" type="button">刷新 ↻</button></div>
+    <p id="leaderboard-status" class="muted" role="status">正在读取排行榜…</p>
+    <ol id="leaderboard-list" class="leaderboard-list" aria-label="排行榜"></ol>
+  </dialog>
   <script src="game-rules.js"></script>
+  <script src="skin.js"></script>
+  <script src="snake-renderer.js?v=20261015"></script>
+  <script src="config.js?v=20261015"></script>
+  <script src="leaderboard.js?v=20261015"></script>
   <script src="game.js"></script>
 </body>
 </html>

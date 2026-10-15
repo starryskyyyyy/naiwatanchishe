@@ -12,6 +12,7 @@ const assets = new Map([
   ['/game.js', ['game.js', 'text/javascript; charset=utf-8']],
   ['/game-rules.js', ['game-rules.js', 'text/javascript; charset=utf-8']],
   ['/leaderboard.js', ['leaderboard.js', 'text/javascript; charset=utf-8']],
+  ['/config.js', ['config.js', 'text/javascript; charset=utf-8']],
   ['/skin.js', ['skin.js', 'text/javascript; charset=utf-8']],
   ['/snake-renderer.js', ['snake-renderer.js', 'text/javascript; charset=utf-8']],
 ]);
@@ -48,16 +49,38 @@ function readJson(req) {
   });
 }
 
-function createApplication({dbPath, rateLimit = 30} = {}) {
+function createApplication({dbPath, rateLimit = 30, allowedOrigins=(process.env.ALLOWED_ORIGINS || '').split(',').map(origin=>origin.trim()).filter(Boolean)} = {}) {
   if (!dbPath) dbPath = path.join(process.env.DATA_DIR || path.join(__dirname,'data'),'snake.sqlite');
   if (dbPath !== ':memory:') mkdirSync(path.dirname(dbPath), {recursive:true});
   const board = new Leaderboard(dbPath);
   const visitors = new Map();
+  const origins = new Set(allowedOrigins);
   const server = http.createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'same-origin');
     try {
       const pathname = new URL(req.url, 'http://localhost').pathname;
+      if(pathname.startsWith('/api/')) {
+        const origin=req.headers.origin;
+        const sameOrigin=origin===`http://${req.headers.host}` || origin===`https://${req.headers.host}`;
+        if(origin && !sameOrigin && !origins.has(origin))throw new HttpError(403,'此网站未获准连接排行榜');
+        if(origin) {
+          res.setHeader('Access-Control-Allow-Origin',origin);
+          res.setHeader('Vary','Origin');
+        }
+        if(req.method==='OPTIONS' && ['/api/leaderboard','/api/scores','/api/health'].includes(pathname)) {
+          const method=pathname==='/api/scores'?'POST':'GET';
+          if(req.headers['access-control-request-method']!==method)throw new HttpError(405,'预检请求方法不受支持');
+          const headers=String(req.headers['access-control-request-headers'] || '').split(',').map(header=>header.trim().toLowerCase()).filter(Boolean);
+          if(headers.some(header=>header!=='content-type'))throw new HttpError(403,'预检请求头不受支持');
+          res.writeHead(204,{'Access-Control-Allow-Methods':method,'Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'600'});
+          return res.end();
+        }
+      }
+      if(pathname==='/api/health') {
+        if(req.method!=='GET')throw new HttpError(405,'此接口只允许GET请求');
+        return json(res,200,{ok:true});
+      }
       if (pathname === '/api/leaderboard') {
         if (req.method !== 'GET') { res.setHeader('Allow','GET'); throw new HttpError(405,'此接口只允许GET请求'); }
         return json(res,200,{entries:board.list(),limit:20});

@@ -6,9 +6,9 @@ GitHub 是保存代码的平台，GitHub Pages 是它的静态网站托管功能
 
 `snake-github-pages.zip` 是可上传的前端文件包，解压后包含 index.html、CSS、JavaScript 和 assets 图片目录。不要直接上传 ZIP；需要上传解压后的内容。
 
-仅用 GitHub Pages 可以玩游戏、显示贴图、计算本局分数，但不能运行 Node.js 和 SQLite，所以现在的全站排行榜读取与成绩提交在 Pages 上不可用，可能提示请求错误。它们在本地 npm start 服务中仍然正常，排行榜后端没有删除，也没有改成本机榜单。
+仅用 GitHub Pages 可以玩游戏、显示贴图、计算本局分数，但不能运行 Node.js 和 SQLite。未连接独立后端时，Pages 页面会显示“排行榜服务尚未连接”，不能提交成绩。它们在本地 npm start 服务中仍然正常，排行榜后端没有删除，也没有改成本机榜单。
 
-完整上线需要：GitHub Pages 托管前端，另一台支持 Node.js 24+ 和持久磁盘的服务运行 server.js；之后配置前端 API 地址、后端 HTTPS 和跨域请求规则。当前代码仍请求同站点 /api/...，直接上传后端文件到 Pages 不能解决这个问题。
+完整上线需要：GitHub Pages 托管前端，另一台支持 Node.js 24+ 和持久磁盘的服务运行 server.js。现在已提供 config.js 后端地址配置、跨域支持和 Dockerfile，详见 [排行榜后端部署说明](leaderboard-deployment.md)。未配置后端的 Pages 页面会明确提示暂未连接。
 
 ## 用浏览器上传，不需要先学 Git 命令
 
