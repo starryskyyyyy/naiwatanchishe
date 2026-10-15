@@ -8,3 +8,5 @@ GitHub Pages 只运行游戏前端。全站排行榜需要独立的 Node.js 24+ 
 本地运行：`npm start`；测试：`npm test` 和 `npm run test:browser`。
 
 完整上线步骤见 [排行榜后端部署说明](docs/leaderboard-deployment.md)。
+
+已创建 Cloudflare Worker 和 D1 的话，按 [Cloudflare最后三步](cloudflare/README.md) 部署即可，不必运行自己的 Node.js 服务器。
