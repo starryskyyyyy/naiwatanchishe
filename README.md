@@ -3,7 +3,9 @@
 用了codex闲的没事干做了一个
 棋盘现在随窗口放大，苹果、梨和桃子随机出现，每个水果加1分。
 
-GitHub Pages 只运行游戏前端。全站排行榜需要独立的 Node.js 24+ 后端和持久磁盘；在 `config.js` 填入后端 HTTPS 地址后启用提交。未连接后端时会明确提示，不会假装保存成绩。
+GitHub Pages 运行游戏前端，排行榜已连接 Cloudflare Workers + D1。`config.js` 配置公开接口地址；只保存全站前20名，同昵称可保存多局，未入榜成绩不写入。
+
+本地运行使用本地 Node.js + SQLite 排行榜，开发测试不会写入正式云端榜单。
 
 本地运行：`npm start`；测试：`npm test` 和 `npm run test:browser`。
 

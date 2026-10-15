@@ -2,6 +2,8 @@
 
 游戏页面：https://starryskyyyyy.github.io/naiwatanchishe/
 
+当前生产环境使用 Cloudflare Workers + D1，已连接上述游戏页面，无需购买或维护自己的服务器。控制台部署与后续迁移步骤见 [Cloudflare说明](../cloudflare/README.md)。下面的 Node.js + 持久磁盘方案保留作为可选替代方案。
+
 ## 这次修正
 
 - 上传自动放大的棋盘布局及响应式画布分辨率。

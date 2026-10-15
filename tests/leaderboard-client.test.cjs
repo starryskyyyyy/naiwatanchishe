@@ -4,6 +4,14 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 const {join}=require('node:path');
 const source=fs.readFileSync(join(__dirname,'../leaderboard.js'),'utf8');
+test('生产配置连接Cloudflare，本地开发和自动测试不连接正式榜单',()=>{
+  const config=fs.readFileSync(join(__dirname,'../config.js'),'utf8');
+  for(const hostname of ['localhost','127.0.0.1','starryskyyyyy.github.io']) {
+    const context={location:{hostname}};vm.runInNewContext(config,context);
+    assert.equal(context.SnakeConfig.apiBaseUrl,hostname.endsWith('.github.io')
+      ? 'https://fancy-meadow-3bf8naiwatanchishe-api.linstarryskyyy.workers.dev' : '');
+  }
+});
 function client(hostname,apiBaseUrl='') {
   const elements=new Map(),requests=[];
   const element=selector=>{
